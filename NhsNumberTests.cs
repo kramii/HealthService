@@ -62,6 +62,13 @@ namespace NhsNumberTests
         }
 
         [TestMethod]
+        public void WhenTenDigitsShouldReturnCustomFormattedValue()
+        {
+            var nhsNumber = new NhsNumber.NhsNumber("1234567890", outputSeparator: '~');
+            Assert.AreEqual("123~456~7890", nhsNumber.Formatted);
+        }
+
+        [TestMethod]
         public void WhenNumberIsValidShouldReturnValid()
         {
             // 401 023 2137 is a valid NHS Number.
