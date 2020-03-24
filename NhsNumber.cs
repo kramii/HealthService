@@ -12,57 +12,58 @@ namespace NhsNumber
 
         public bool IsValid { get; }
 
-        public NhsNumber(string raw)
+        public NhsNumber(string raw, char? imputSeparator = ' ', char outputSeparator = ' ')
         {
             Raw = raw;
-            WithoutSeparators = RemoveSeparators(raw);
-            Formatted = Format(WithoutSeparators);
+            WithoutSeparators = RemoveSeparators(raw, imputSeparator);
+            Formatted = Format(WithoutSeparators, outputSeparator);
             IsValid = Validate(WithoutSeparators);
         }
 
-        private static string Format(string withoutSeparators)
+        private static string Format(string withoutSeparators, char separator)
         {
-            if (withoutSeparators.Length != 10)
+            // We can only apply 3 3 4 formatting if we have 10 digits.
+            if (withoutSeparators.Length != 10 || !withoutSeparators.Any(char.IsDigit))
             {
                 return withoutSeparators;
             }
 
-            return withoutSeparators.Substring(0, 3) + " " + withoutSeparators.Substring(3, 3) + " " +
+            return withoutSeparators.Substring(0, 3) + separator +
+                   withoutSeparators.Substring(3, 3) + separator +
                    withoutSeparators.Substring(6, 4);
         }
 
-        private static string RemoveSeparators(string raw, char? separator = null)
+        private static string RemoveSeparators(string value, char? separator)
         {
-            switch (raw.Length)
+            // We can only remove separators if the supplied value was in 3 3 4 format.
+            if (value.Length != 12)
             {
-                case 10:
-
-                    return raw;
-
-                case 12:
-
-                    // Auto-detect separator if none was supplied.
-                    if (separator == null)
-                    {
-                        separator = raw[3];
-                    }
-
-                    // Check separators match.
-                    if (raw[3] != separator || raw[7] != separator)
-                    {
-                        return raw;
-                    }
-
-                    // Remove separators.
-                    string withoutSeparators = raw.Substring(0, 3) + raw.Substring(4, 3) + raw.Substring(8, 4);
-
-                    return withoutSeparators.All(char.IsDigit)
-                        ? withoutSeparators
-                        : raw;
-
-                default:
-                    return raw;
+                return value;
             }
+
+            // Auto-detect separator if null was supplied.
+            if (separator == null)
+            {
+                separator = value[3];
+            }
+
+            // Check both separators match.
+            if (value[3] != separator || value[7] != separator)
+            {
+                return value;
+            }
+
+            // Remove separators.
+            string withoutSeparators = value.Substring(0, 3) + value.Substring(4, 3) + value.Substring(8, 4);
+
+            // If some of the remaining chars are not digits, we don't have a proper NHS Number.
+            if (!withoutSeparators.All(char.IsDigit))
+            {
+                return value;
+            }
+
+            // We've successfully removed the separators.
+            return withoutSeparators;
         }
 
         private static bool Validate(string nhsNumberWithoutSeparators)
